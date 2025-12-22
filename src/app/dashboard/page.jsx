@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BookOpen,
   Calendar,
@@ -91,7 +91,7 @@ const Avatar = ({ src, alt, className = "" }) => (
   </div>
 );
 
-/* ---------- Mock Data (later replace with Supabase) ---------- */
+/* ---------- Mock Data for User Profile ---------- */
 
 const student = {
   name: "John Doe",
@@ -99,55 +99,46 @@ const student = {
   avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
 };
 
-const events = [
-  {
-    id: 1,
-    title: "Tech Symposium 2024",
-    date: "Mar 15",
-    time: "10:00 AM",
-    location: "Main Auditorium",
-  },
-  {
-    id: 2,
-    title: "Cultural Night",
-    date: "Mar 20",
-    time: "06:00 PM",
-    location: "Open Air Theatre",
-  },
-  {
-    id: 3,
-    title: "AI & ML Workshop",
-    date: "Mar 25",
-    time: "02:00 PM",
-    location: "Lab 402",
-  },
-];
-
-const notices = [
-  {
-    id: 1,
-    title: "Prelim payment due",
-    summary: "Complete the payment by 5th Oct to avoid penalties.",
-  },
-  {
-    id: 2,
-    title: "Exam schedule released",
-    summary: "End semester exams start from 15th Nov. Check the PDF.",
-  },
-];
-
-const pyqs = [
-  { id: 1, code: "CS301", name: "Data Structures", year: "2023" },
-  { id: 2, code: "CS302", name: "Algorithms", year: "2023" },
-  { id: 3, code: "CS303", name: "Operating Systems", year: "2022" },
-];
-
 /* ---------- Main Dashboard Component ---------- */
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("dashboard");
+  
+  // Data State
+  const [notices, setNotices] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [pyqs, setPyqs] = useState([]);
+  
+  // Loading State
+  const [isLoading, setIsLoading] = useState(true);
+
   const [darkMode, setDarkMode] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // 2. FETCH: Get data from API when page loads
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // Fetch Notices, Events, and PYQs in parallel
+        // ✅ FIX 1: Added "/" at the start of fetch URLs
+        const [noticesRes, eventsRes, pyqsRes] = await Promise.all([
+          fetch("/api/notices"), 
+          fetch("/api/events"),
+          fetch("/api/pyqs"),
+        ]);
+
+        if (noticesRes.ok) setNotices(await noticesRes.json());
+        if (eventsRes.ok) setEvents(await eventsRes.json());
+        if (pyqsRes.ok) setPyqs(await pyqsRes.json());
+        
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, []); 
 
   const toggleTheme = () => {
     setDarkMode((d) => !d);
@@ -188,9 +179,7 @@ export default function DashboardPage() {
             <span className="text-lg font-semibold leading-tight">
               CampusBuddy
             </span>
-            <span className="text-xs text-violet-100">
-              Student Dashboard
-            </span>
+            <span className="text-xs text-violet-100">Student Dashboard</span>
           </div>
         </div>
 
@@ -251,7 +240,6 @@ export default function DashboardPage() {
             >
               <Menu size={20} />
             </button>
-
             {/* Search */}
             <div className="hidden md:flex relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -284,17 +272,26 @@ export default function DashboardPage() {
 
         {/* Route content */}
         <div className="max-w-6xl mx-auto space-y-8">
-          {activeTab === "dashboard" && (
-            <DashboardHome
-              setActiveTab={setActiveTab}
-              events={events}
-              notices={notices}
-              pyqs={pyqs}
-            />
+          {isLoading ? (
+            /* LOADING STATE */
+            <div className="flex h-64 items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
+            </div>
+          ) : (
+            <>
+              {activeTab === "dashboard" && (
+                <DashboardHome
+                  setActiveTab={setActiveTab}
+                  events={events}
+                  notices={notices}
+                  pyqs={pyqs}
+                />
+              )}
+              {activeTab === "events" && <EventsPage events={events} />}
+              {activeTab === "pyqs" && <PyqPage pyqs={pyqs} />}
+              {activeTab === "notices" && <NoticesPage notices={notices} />}
+            </>
           )}
-          {activeTab === "events" && <EventsPage events={events} />}
-          {activeTab === "pyqs" && <PyqPage pyqs={pyqs} />}
-          {activeTab === "notices" && <NoticesPage notices={notices} />}
         </div>
       </main>
 
@@ -320,7 +317,7 @@ function DashboardHome({ setActiveTab, events, notices, pyqs }) {
 
   return (
     <>
-      {/* Banner with 3D illustration placeholder */}
+      {/* Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg p-8 flex flex-col md:flex-row md:items-center md:justify-between">
         <div className="relative z-10 max-w-xl space-y-3">
           <p className="text-sm text-violet-100">{today}</p>
@@ -346,12 +343,9 @@ function DashboardHome({ setActiveTab, events, notices, pyqs }) {
 
         {/* Right illustration side */}
         <div className="mt-6 md:mt-0 md:ml-6 relative">
-          {/* Glow blobs */}
           <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-purple-400/40 blur-3xl" />
           <div className="absolute -top-6 right-4 h-28 w-28 rounded-full bg-violet-300/40 blur-2xl" />
-          {/* 3D Illustration image placeholder */}
           <div className="relative h-40 w-40 md:h-48 md:w-48 rounded-3xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center overflow-hidden shadow-xl">
-            {/* Put your own 3D model image in public/dashboard-3d.png */}
             <img
               src="/dashboard_3d.png"
               alt="3D student"
@@ -361,7 +355,7 @@ function DashboardHome({ setActiveTab, events, notices, pyqs }) {
         </div>
       </div>
 
-      {/* Top row: Events / PYQs / Notices quick cards */}
+      {/* Quick Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card
           className="hover:scale-[1.02]"
@@ -415,9 +409,8 @@ function DashboardHome({ setActiveTab, events, notices, pyqs }) {
         </Card>
       </div>
 
-      {/* Bottom section: Events & Notices side-by-side */}
+      {/* Bottom section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Upcoming Events list */}
         <Card className="lg:col-span-2">
           <CardHeader className="flex items-center justify-between">
             <CardTitle>Upcoming events</CardTitle>
@@ -426,35 +419,38 @@ function DashboardHome({ setActiveTab, events, notices, pyqs }) {
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {events.map((event) => (
-                <div
-                  key={event.id}
-                  className="flex items-center justify-between rounded-2xl border border-slate-100 dark:border-slate-800 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-900/70 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-violet-100 flex flex-col items-center justify-center text-[11px] font-semibold text-violet-700">
-                      <span>{event.date.split(" ")[0]}</span>
-                      <span>{event.date.split(" ")[1]}</span>
+            {events.length === 0 ? (
+              <p className="text-sm text-slate-500 text-center py-4">No events found.</p>
+            ) : (
+              <div className="space-y-3">
+                {events.map((event) => (
+                  <div
+                    key={event.id}
+                    className="flex items-center justify-between rounded-2xl border border-slate-100 dark:border-slate-800 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-900/70 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-violet-100 flex flex-col items-center justify-center text-[11px] font-semibold text-violet-700">
+                        <span>{event.date.split(" ")[0]}</span>
+                        <span>{event.date.split(" ")[1]}</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">{event.title}</p>
+                        <p className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                          <Clock size={12} />
+                          {event.time} • {event.location}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold">{event.title}</p>
-                      <p className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
-                        <Clock size={12} />
-                        {event.time} • {event.location}
-                      </p>
-                    </div>
+                    <Button variant="outline" size="sm">
+                      Details
+                    </Button>
                   </div>
-                  <Button variant="outline" size="sm">
-                    Details
-                  </Button>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Notice board */}
         <Card>
           <CardHeader className="flex items-center justify-between">
             <CardTitle>Daily notice</CardTitle>
@@ -468,21 +464,28 @@ function DashboardHome({ setActiveTab, events, notices, pyqs }) {
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4 text-sm">
-              {notices.map((notice) => (
-                <div key={notice.id} className="border-b border-slate-100 dark:border-slate-800 pb-3 last:border-0 last:pb-0">
-                  <p className="font-semibold text-slate-900 dark:text-slate-100">
-                    {notice.title}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {notice.summary}
-                  </p>
-                  <button className="mt-1 text-xs text-violet-600 hover:underline">
-                    More
-                  </button>
-                </div>
-              ))}
-            </div>
+            {notices.length === 0 ? (
+              <p className="text-sm text-slate-500 text-center py-4">No notices yet.</p>
+            ) : (
+              <div className="space-y-4 text-sm">
+                {notices.map((notice) => (
+                  <div
+                    key={notice.id}
+                    className="border-b border-slate-100 dark:border-slate-800 pb-3 last:border-0 last:pb-0"
+                  >
+                    <p className="font-semibold text-slate-900 dark:text-slate-100">
+                      {notice.title}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {notice.summary || "Click to view file"}
+                    </p>
+                    <button className="mt-1 text-xs text-violet-600 hover:underline">
+                      More
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -494,18 +497,22 @@ function EventsPage({ events }) {
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold mb-2">All events</h2>
-      {events.map((event) => (
-        <Card key={event.id}>
-          <CardHeader className="flex items-center justify-between">
-            <div>
-              <CardTitle>{event.title}</CardTitle>
-              <p className="text-xs text-slate-500 mt-1">
-                {event.date} • {event.time} • {event.location}
-              </p>
-            </div>
-          </CardHeader>
-        </Card>
-      ))}
+      {events.length === 0 ? (
+        <p className="text-slate-500">No events scheduled.</p>
+      ) : (
+        events.map((event) => (
+          <Card key={event.id}>
+            <CardHeader className="flex items-center justify-between">
+              <div>
+                <CardTitle>{event.title}</CardTitle>
+                <p className="text-xs text-slate-500 mt-1">
+                  {event.date} • {event.time} • {event.location}
+                </p>
+              </div>
+            </CardHeader>
+          </Card>
+        ))
+      )}
     </div>
   );
 }
@@ -514,21 +521,30 @@ function PyqPage({ pyqs }) {
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold mb-2">Previous year questions</h2>
-      {pyqs.map((p) => (
-        <Card key={p.id}>
-          <CardHeader className="flex items-center justify-between">
-            <div>
-              <CardTitle>{p.name}</CardTitle>
-              <p className="text-xs text-slate-500 mt-1">
-                {p.code} • {p.year}
-              </p>
-            </div>
-            <Button size="sm" variant="outline">
-              Download
-            </Button>
-          </CardHeader>
-        </Card>
-      ))}
+      {pyqs.length === 0 ? (
+        <p className="text-slate-500">No question papers uploaded yet.</p>
+      ) : (
+        pyqs.map((p) => (
+          <Card key={p.id}>
+            <CardHeader className="flex items-center justify-between">
+              <div>
+                {/* ✅ FIX 2: Corrected variable names to match DB */}
+                <CardTitle>{p.subject_name}</CardTitle>
+                <p className="text-xs text-slate-500 mt-1">
+                  {p.course_code} • {p.created_at}
+                </p>
+              </div>
+              {p.file_url && (
+                <a href={p.file_url} target="_blank">
+                  <Button size="sm" variant="outline">
+                    Download
+                  </Button>
+                </a>
+              )}
+            </CardHeader>
+          </Card>
+        ))
+      )}
     </div>
   );
 }
@@ -537,18 +553,31 @@ function NoticesPage({ notices }) {
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold mb-2">Notice board</h2>
-      {notices.map((n) => (
-        <Card key={n.id}>
-          <CardHeader>
-            <CardTitle>{n.title}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              {n.summary}
-            </p>
-          </CardContent>
-        </Card>
-      ))}
+      {notices.length === 0 ? (
+        <p className="text-slate-500">No notices found.</p>
+      ) : (
+        notices.map((n) => (
+          <Card key={n.id}>
+            <CardHeader>
+              <CardTitle>{n.title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                {n.summary}
+              </p>
+              {n.file_url && (
+                <a
+                  href={n.file_url}
+                  target="_blank"
+                  className="text-sm text-violet-600 hover:underline mt-2 inline-block"
+                >
+                  View Attachment
+                </a>
+              )}
+            </CardContent>
+          </Card>
+        ))
+      )}
     </div>
   );
 }

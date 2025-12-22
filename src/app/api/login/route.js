@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin as supabase } from "@/lib/supabase-admin";
 import bcrypt from "bcrypt";
 import { SignJWT } from "jose";
 import { cookies } from "next/headers";

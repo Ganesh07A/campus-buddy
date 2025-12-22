@@ -5,7 +5,7 @@ export async function GET() {
         const { data, error} = await supabase
     .from("notices")
     .select("*")
-    .order("created_at", { asending : false})
+    .order("created_at", { ascending : false})
 
     if(error) {
         return Response.json(

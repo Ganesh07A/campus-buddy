@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin as supabase } from "@/lib/supabase-admin";
 export async function POST(req) {
   try {
         const body = await req.json();
