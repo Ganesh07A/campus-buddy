@@ -16,6 +16,7 @@ import {
   Sun,
   LayoutDashboard,
 } from "lucide-react";
+import Chatbot from "@/components/Chatbot";
 
 /* ---------- Reusable UI Primitives ---------- */
 
@@ -302,6 +303,7 @@ export default function DashboardPage() {
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
+      <Chatbot/>
     </div>
   );
 }
