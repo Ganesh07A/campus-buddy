@@ -1,18 +1,24 @@
-# Admin Panel
+# Admin Panel Documentation
 
-The admin panel allows authorized staff to manage campus data.
+The admin panel is the control center for the CampusBuddy application, allowing authorized staff to manage content dynamically.
 
 ## Current Status
-- **Backend Logic:** ✅ Ready
-  - Secure API routes created for Events, Notices, and PYQs.
-  - Role-based access control (RBAC) enforced via `supabase-admin` client.
-- **Frontend UI:** 🚧 In Development (Next Step)
+- **Backend Logic:** ✅ Complete
+  - Secured API routes for Events, Notices, and PYQs.
+  - Role-based access control (RBAC) enforced via `supabase-admin`.
+- **Frontend UI:** ✅ Complete
+  - **Event Creator:** ✅ Live. Admins can create and publish events.
+  - **Notice Board:** ✅ Live. Admins can upload PDFs/Images.
+  - **PYQ Manager:** ✅ Live. Admins can upload question papers with classification (Branch/Year).
 
-## Planned Features (Control Center)
-- **Event Creator:** Form to schedule events (Title, Date, Time).
-- **Notice Board:** Drag-and-drop zone for PDF/Image uploads.
-- **PYQ Manager:** Interface to tag and upload question papers.
+## Features & Routes
+| Feature | Route | Status | Description |
+| :--- | :--- | :--- | :--- |
+| **Dashboard** | `/admin` | 🚧 | Overview stats (Total students, notices, events). |
+| **Create Event** | `/admin/events` | ✅ | Form to add Title, Date, Time, Location. |
+| **Upload Notice** | `/admin/notices/create` | ✅ | Drag-and-drop file upload (PDF/Img) to Supabase Storage. |
+| **Upload PYQ** | `/admin/pyqs` | ✅ | Upload PDFs with metadata: Subject, Branch (CSE/AIML...), Year (1st/2nd...), Course Code. |
 
 ## Security Architecture
-- **Service Role Access:** The admin panel uses a privileged Supabase client to bypass RLS for uploads.
-- **Middleware Protection:** All `/admin` routes are protected; unauthenticated users are redirected to login.
+- **Service Role Access:** The admin panel uses a privileged Supabase client (`supabaseAdmin`) to bypass RLS for writes/uploads.
+- **Middleware Protection:** All `/admin` routes are protected; unauthenticated users are redirected to `/login`.

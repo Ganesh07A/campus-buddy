@@ -95,4 +95,16 @@ Adds a new PYQ entry.
 
 Access: Admin Only
 
-Body: { "subject_name": "...", "course_code": "...", "year": "...", "file_url": "..." }
+## Body:
+
+- file: PDF File
+
+- subject_name: String (e.g. "Data Structures")
+
+- course_code: String (e.g. "CS301")
+
+- year: String (Exam Year, e.g. "2023")
+
+- branch: String (e.g. "CSE", "AIML")
+
+- academic_year: String (e.g. "2nd Year", "3rd Year")

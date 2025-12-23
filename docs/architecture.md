@@ -20,23 +20,33 @@ academic communication between administration and students.
 2. **Parallel Data Fetching:**
    - The Student Dashboard fetches Notices, Events, and PYQs simultaneously using `Promise.all()` to minimize load times.
 
+```markdown
+
 ## Folder Structure
 src/
  ├── app/
  │   ├── api/
- │   │   ├── events/       # GET (Public), POST (Admin)
- │   │   ├── notices/      # GET (Public)
- │   │   ├── pyqs/         # GET (Public), POST (Admin)
- │   │   └── login/        # Custom Auth Logic
- │   ├── admin/            # Admin Control Center (Protected)
- │   ├── dashboard/        # Student View (Connected to DB)
+ │   │   ├── chat/         # 🤖 AI Logic (Gemini + RAG)
+ │   │   ├── events/       # Events API
+ │   │   ├── notices/      # Notices API
+ │   │   ├── pyqs/         # PYQs API
+ │   │   └── login/        # Auth API
+ │   ├── admin/            # Admin Control Center
+ │   │   ├── events/       # Event Manager
+ │   │   ├── notices/      # Notice Manager
+ │   │   └── pyqs/         # PYQ Manager
+ │   ├── dashboard/        # Student View
+ │   │   └── page.jsx      # Includes <Chatbot />
+ ├── components/
+ │   └── Chatbot.jsx       # Floating AI Chat Interface
  ├── lib/
  │   ├── supabase.js       # Public Client
- │   └── supabase-admin.js # Admin Client (Privileged)
+ │   └── supabase-admin.js # Admin Client
  └── middleware.js         # Route Protection
 
 ## Project Status
-- ✅ Student Dashboard (Read Operations) Complete
-- ✅ Database Schema (Events, Notices, PYQs) Live
-- ✅ Backend Security (Admin vs Public) Implemented
-- 🚧 Admin Control Center UI (In Progress)
+- ✅ Student Dashboard (Read Ops)
+- ✅ Admin Event Management
+- ✅ Admin Notice Uploads
+- ✅ Admin PYQ Management (with Branch/Year filtering)
+- ✅ AI Chatbot Integration
