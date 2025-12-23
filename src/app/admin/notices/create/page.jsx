@@ -1,112 +1,144 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { FileText, Upload, Loader2, CheckCircle } from "lucide-react";
 
-export default function CreateNoticePage() {
+// UI Components
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+
+export default function UploadNoticePage() {
   const router = useRouter();
-
-  // ---------- STATE ----------
+  const [loading, setLoading] = useState(false);
+  
+  // State for Form
   const [title, setTitle] = useState("");
   const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
-  // ---------- SUBMIT HANDLER ----------
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e) => {
-    e.preventDefault(); // ✅ fixed
-
-    if (!title || !file) {
-      setMessage("Title and file are required");
+    e.preventDefault();
+    if (!file || !title) {
+      alert("Please select a file and enter a title.");
       return;
     }
 
     setLoading(true);
-    setMessage("");
 
     try {
+      // 1. Create FormData (Required for file uploads)
       const formData = new FormData();
       formData.append("title", title);
       formData.append("file", file);
 
-      const res = await fetch("/api/notices/uploads", {
+      // 2. Send to our Unified API
+      const res = await fetch("/api/notices", {
         method: "POST",
-        body: formData,
+        body: formData, // No JSON.stringify for files!
       });
 
-      const data = await res.json();
+      const result = await res.json();
 
-      if (!res.ok) {
-        setMessage(data.error || "Upload failed");
-      } else {
-        setMessage("Notice uploaded successfully");
-        setTitle("");
-        setFile(null);
+      if (!res.ok) throw new Error(result.error || "Upload failed");
 
-        // optional redirect after success
-        setTimeout(() => router.push("/admin/notices"), 1200);
-      }
+      alert("✅ Notice Published Successfully!");
+      router.push("/dashboard"); // Or back to admin list
+
     } catch (error) {
-      setMessage(error.message || "An error occurred");
+      console.error(error);
+      alert("❌ Error: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // ---------- UI ----------
   return (
-    <div className="p-8 max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Create Notice</h1>
+    <div className="max-w-xl mx-auto mt-10 p-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold flex items-center gap-2">
+            <FileText className="text-violet-600" />
+            Upload New Notice
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            
+            {/* Title Input */}
+            <div className="space-y-2">
+              <Label htmlFor="title">Notice Title</Label>
+              <Input
+                id="title"
+                placeholder="e.g. End Semester Exam Schedule"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* TITLE INPUT */}
-        <div>
-          <label className="block text-sm font-medium">Title</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 w-full border rounded-md p-2"
-          />
-        </div>
+            {/* File Input (Drag & Drop Style) */}
+            <div className="space-y-2">
+              <Label htmlFor="file">Attach Document (PDF/Image)</Label>
+              <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-8 flex flex-col items-center justify-center text-center bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 transition-colors cursor-pointer relative">
+                
+                <input 
+                  type="file" 
+                  id="file" 
+                  accept=".pdf,.png,.jpg,.jpeg"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  onChange={handleFileChange}
+                  required
+                />
+                
+                <div className="bg-violet-100 p-3 rounded-full mb-3">
+                  <Upload className="text-violet-600 h-6 w-6" />
+                </div>
+                
+                {file ? (
+                  <div className="flex items-center gap-2 text-violet-700 font-medium">
+                    <CheckCircle className="h-4 w-4" />
+                    {file.name}
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      PDF, PNG, JPG up to 10MB
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
 
-        {/* FILE INPUT */}
-        <div>
-          <label className="block text-sm font-medium">File</label>
-          <input
-            type="file"
-            accept=".pdf,.png,.jpg,.jpeg"
-            onChange={(e) => setFile(e.target.files[0])}
-            className="mt-1 w-full border rounded-md p-2"
-          />
-        </div>
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              className="w-full bg-violet-600 hover:bg-violet-700 h-11"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                "Publish Notice"
+              )}
+            </Button>
 
-        {/* MESSAGE */}
-        {message && (
-          <p
-            className={
-              message.includes("success")
-                ? "text-green-500"
-                : "text-red-500"
-            }
-          >
-            {message}
-          </p>
-        )}
-
-        {/* SUBMIT */}
-        <button
-          type="submit"
-          disabled={loading}
-          className={`px-4 py-2 rounded-md text-white ${
-            loading
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-violet-600 hover:bg-violet-700"
-          }`}
-        >
-          {loading ? "Uploading..." : "Upload Notice"}
-        </button>
-      </form>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
