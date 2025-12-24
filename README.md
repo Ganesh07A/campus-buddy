@@ -1,12 +1,14 @@
 # 🎓 CampusBuddy
 
+You can visit the website: [CampusBuddy](https://campus-buddy07.vercel.app/)
+
 <div align="center">
 
-  ![CampusBuddy Banner](https://capsule-render.vercel.app/api?type=waving&color=violet&height=250&section=header&text=CampusBuddy&fontSize=90&animation=fadeIn&fontAlignY=38&desc=Your%20AI-Powered%20Digital%20Campus&descAlignY=55&descAlign=50)
+![CampusBuddy Banner](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=8b5cf6,db2777&height=250&section=header&text=CampusBuddy&fontSize=90&animation=fadeIn&fontAlignY=38&desc=Your%20AI-Powered%20Digital%20Campus&descAlignY=55&descAlign=50&fontColor=ffffff)
 
   <br />
 
-  [![Next.js](https://img.shields.io/badge/Next.js-15.0-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+  [![Next.js](https://img.shields.io/badge/Next.js-16.0-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
   [![Supabase](https://img.shields.io/badge/Supabase-Database-green?style=for-the-badge&logo=supabase)](https://supabase.com/)
   [![Google Gemini](https://img.shields.io/badge/AI-Google%20Gemini-blue?style=for-the-badge&logo=googlebard&logoColor=white)](https://ai.google.dev/)
   [![Tailwind CSS](https://img.shields.io/badge/Tailwind-Styling-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
@@ -52,7 +54,18 @@ This project is built for performance, security, and scalability.
 
 ## 📸 Glimpse of the App
 
-> *Add screenshots of your Dashboard, Admin Panel, and Chatbot here to show off your UI!*
+# Home Page
+<img width="1890" height="866" alt="Screenshot 2025-12-24 215628" src="https://github.com/user-attachments/assets/825a5245-1c41-4138-8cbd-7087c7bb854c" />
+
+# Student Dashboard
+<img width="1900" height="869" alt="Screenshot 2025-12-24 215910" src="https://github.com/user-attachments/assets/ab07ae05-1636-48d7-b573-f5afb420ba6c" />
+
+# ChatBot 
+<img width="676" height="783" alt="Screenshot 2025-12-24 215931" src="https://github.com/user-attachments/assets/8854c700-67e0-42e6-b36a-48707cf9d780" />
+
+# Admin Dashboard
+<img width="1897" height="867" alt="Screenshot 2025-12-24 220031" src="https://github.com/user-attachments/assets/03c92ab7-311c-4ae6-b90a-20e274a6b031" />
+
 
 ## ⚡ Getting Started
 
@@ -117,5 +130,5 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ---
 
 <div align="center">
-  Made with ❤️ by <b>[Your Name]</b>
+  Made with ❤️ by <b>Ganesh<b>
 </div>
