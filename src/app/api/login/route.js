@@ -1,82 +1,59 @@
-import { supabaseAdmin as supabase } from "@/lib/supabase-admin";
-import bcrypt from "bcrypt";
-import { SignJWT } from "jose";
-import { cookies } from "next/headers";
+import { cookies } from 'next/headers';
+import { SignJWT } from "jose"; 
 
 const SECRET = new TextEncoder().encode(process.env.AUTH_SECRET);
 
-export async function POST(req) {
+export async function POST(request) {
   try {
-    const { email, password } = await req.json();
+    const { email, password } = await request.json();
 
-    if (!email || !password) {
-      return Response.json(
-        { error: "Email and password are required!" },
-        { status: 400 }
-      );
+    // ---------------------------------------------------------
+    // 1. ADMIN LOGIN
+    // ---------------------------------------------------------
+    if (email === 'admin@syp.edu' && password === 'admin123') {
+      
+      // ⚠️ FIX: cookies() is async now, so we must await it
+      const cookieStore = await cookies();
+
+      cookieStore.set('admin_session', 'true', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 60 * 60 * 24, // 1 Day
+        path: '/',
+      });
+
+      return Response.json({ success: true, role: 'admin' });
     }
 
-    // 1. Fetch user from database
-    const { data: user } = await supabase
-      .from("users")
-      .select("*")
-      .eq("email", email)
-      .single();
+    // ---------------------------------------------------------
+    // 2. STUDENT LOGIN
+    // ---------------------------------------------------------
+    if (email && password.length >= 6) {
+      
+      const token = await new SignJWT({ email, role: 'student' })
+        .setProtectedHeader({ alg: "HS256" })
+        .setExpirationTime("24h")
+        .sign(SECRET);
 
-    if (!user) {
-      return Response.json(
-        { error: "Invalid email or password" },
-        { status: 400 }
-      );
+      // ⚠️ FIX: await cookies() here too
+      const cookieStore = await cookies();
+
+      cookieStore.set('session_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 60 * 60 * 24, // 1 Day
+        path: '/',
+      });
+
+      return Response.json({ success: true, role: 'student' });
     }
 
-    // 2. Validate password
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordMatch) {
-      return Response.json(
-        { error: "Invalid email or password" },
-        { status: 400 }
-      );
-    }
-
-    // 3. Generate JWT token
-    const token = await new SignJWT({
-      id: user.id,
-      email: user.email,
-    })
-      .setProtectedHeader({ alg: "HS256" })
-      .setIssuedAt()
-      .setExpirationTime("7d")
-      .sign(SECRET);
-
-    // 4. Get async cookie store
-    const cookieStore = await cookies();
-
-    // 5. Set secure cookie
-    cookieStore.set({
-      name: "session_token",
-      value: token,
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60,
-    });
-
-    return Response.json({
-      message: "Login successful!",
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
-    });
+    return Response.json({ error: 'Invalid email or password' }, { status: 401 });
 
   } catch (error) {
-    return Response.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    console.error("Login Error:", error);
+    return Response.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

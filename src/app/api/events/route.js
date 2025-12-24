@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 import {supabaseAdmin} from "@/lib/supabase-admin";
 import { cookies } from "next/headers";
 import { jwtVerify} from "jose"
-
+import { toast } from "sonner";
 const SECRET = new TextEncoder().encode(process.env.AUTH_SECRET);
 
 // for public events listing
