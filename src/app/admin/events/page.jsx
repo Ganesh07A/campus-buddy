@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Calendar, Clock, MapPin, Type } from "lucide-react";
-
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,12 +36,12 @@ export default function AddEventPage() {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to Fetch events!");
+        toast.error("Failed to Fetch events!");
       }
-      alert("Event created successfully! ");
+      toast.success("Event created successfully! ");
       router.push("/dashboard"); // redirect to dashboard
     } catch (err) {
-      alert("ERROR!", err.message);
+      toast.error("ERROR!", err.message);
     } finally {
       setLoading(false);
     }

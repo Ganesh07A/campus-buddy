@@ -49,12 +49,12 @@ export default function UploadNoticePage() {
 
       if (!res.ok) throw new Error(result.error || "Upload failed");
 
-      alert("✅ Notice Published Successfully!");
+      toast.success("✅ Notice Published Successfully!");
       router.push("/dashboard"); // Or back to admin list
 
     } catch (error) {
       console.error(error);
-      alert("❌ Error: " + error.message);
+      toast.error("❌ Error: " + error.message);
     } finally {
       setLoading(false);
     }

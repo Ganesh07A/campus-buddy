@@ -1,585 +1,430 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import {
-  BookOpen,
-  Calendar,
-  Users,
-  Bell,
-  Search,
-  Menu,
-  GraduationCap,
-  FileText,
-  Clock,
-  LogOut,
-  Moon,
-  Sun,
-  LayoutDashboard,
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { 
+  Search, Download, LogOut, Menu, X, 
+  BookOpen, Calendar, FileText, Home, 
+  Filter, User, Sparkles, Moon, Sun, 
+  ArrowRight, MapPin, Clock 
 } from "lucide-react";
 import Chatbot from "@/components/Chatbot";
 
-/* ---------- Reusable UI Primitives ---------- */
-
-const Card = ({ children, className = "" }) => (
-  <div
-    className={`bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-200 hover:shadow-lg ${className}`}
-  >
-    {children}
-  </div>
-);
-
-const CardHeader = ({ children, className = "" }) => (
-  <div className={`p-6 pb-3 ${className}`}>{children}</div>
-);
-
-const CardTitle = ({ children, className = "" }) => (
-  <h3
-    className={`font-semibold leading-none tracking-tight text-slate-900 dark:text-slate-100 ${className}`}
-  >
-    {children}
-  </h3>
-);
-
-const CardContent = ({ children, className = "" }) => (
-  <div className={`p-6 pt-0 ${className}`}>{children}</div>
-);
-
-const Button = ({
-  children,
-  variant = "default",
-  size = "default",
-  className = "",
-  onClick,
-}) => {
-  const base =
-    "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97]";
-  const variants = {
-    default:
-      "bg-violet-600 text-white hover:bg-violet-700 shadow-md shadow-violet-200 dark:shadow-none",
-    outline:
-      "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800",
-    ghost:
-      "hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50",
-  };
-  const sizes = {
-    default: "h-11 px-4",
-    sm: "h-9 px-3 text-xs",
-    icon: "h-10 w-10",
-  };
-  return (
-    <button
-      onClick={onClick}
-      className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
-    >
-      {children}
-    </button>
-  );
-};
-
-const Badge = ({ children, className = "" }) => (
-  <span
-    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300 ${className}`}
-  >
-    {children}
-  </span>
-);
-
-const Avatar = ({ src, alt, className = "" }) => (
-  <div
-    className={`relative h-10 w-10 overflow-hidden rounded-full border-2 border-white dark:border-slate-800 shadow-sm ${className}`}
-  >
-    <img src={src} alt={alt} className="h-full w-full object-cover" />
-  </div>
-);
-
-/* ---------- Mock Data for User Profile ---------- */
-
-const student = {
-  name: "John Doe",
-  year: "3rd year",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
-};
-
-/* ---------- Main Dashboard Component ---------- */
-
-export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState("dashboard");
-  
-  // Data State
-  const [notices, setNotices] = useState([]);
-  const [events, setEvents] = useState([]);
-  const [pyqs, setPyqs] = useState([]);
-  
-  // Loading State
-  const [isLoading, setIsLoading] = useState(true);
-
-  const [darkMode, setDarkMode] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // 2. FETCH: Get data from API when page loads
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        // Fetch Notices, Events, and PYQs in parallel
-        // ✅ FIX 1: Added "/" at the start of fetch URLs
-        const [noticesRes, eventsRes, pyqsRes] = await Promise.all([
-          fetch("/api/notices"), 
-          fetch("/api/events"),
-          fetch("/api/pyqs"),
-        ]);
-
-        if (noticesRes.ok) setNotices(await noticesRes.json());
-        if (eventsRes.ok) setEvents(await eventsRes.json());
-        if (pyqsRes.ok) setPyqs(await pyqsRes.json());
-        
-      } catch (err) {
-        console.error("Error fetching data:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchData();
-  }, []); 
-
-  const toggleTheme = () => {
-    setDarkMode((d) => !d);
-    document.documentElement.classList.toggle("dark");
-  };
-
+/* --- 1. Sidebar Component --- */
+const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
   const menuItems = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "home", label: "Overview", icon: Home },
+    { id: "pyqs", label: "PYQs & Notes", icon: BookOpen },
     { id: "events", label: "Events", icon: Calendar },
-    { id: "pyqs", label: "PYQs", icon: BookOpen },
-    { id: "notices", label: "Notices", icon: FileText },
+    { id: "notices", label: "Notices Board", icon: FileText },
   ];
 
   return (
-    <div
-      className={`min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 ${
-        darkMode ? "dark" : ""
-      }`}
-    >
-      {/* Sidebar */}
-      <aside
-        className={`
-          fixed inset-y-4  left-4 z-40 w-65 rounded-3xl
-          bg-gradient-to-b from-violet-600 to-purple-600
-          text-white shadow-2xl shadow-violet-200/60
-          flex flex-col py-6 px-4
-          transform transition-transform duration-300 ease-out
-          ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-[120%]"}
-          lg:translate-x-0
-        `}
-      >
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-3 mb-8">
-          <div className="h-10 w-10 rounded-2xl bg-white/20 flex items-center justify-center">
-            <GraduationCap size={24} />
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Sidebar Container */}
+      <aside className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-50 transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
+        <div className="p-6 flex items-center gap-2 font-bold text-xl text-slate-800 dark:text-white">
+          <div className="h-8 w-8 bg-violet-600 rounded-lg flex items-center justify-center text-white">
+            <Sparkles size={18} />
           </div>
-          <div className="flex flex-col">
-            <span className="text-lg font-semibold leading-tight">
-              CampusBuddy
-            </span>
-            <span className="text-xs text-violet-100">Student Dashboard</span>
-          </div>
+          CampusBuddy
         </div>
 
-        {/* Menu */}
-        <nav className="flex-1 space-y-2 mt-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all duration-200
-                  ${
-                    isActive
-                      ? "bg-white text-violet-700 shadow-lg shadow-violet-300"
-                      : "text-violet-100/90 hover:bg-white/10 hover:text-white"
-                  }
-                `}
-              >
-                <Icon size={18} />
-                {item.label}
-              </button>
-            );
-          })}
+        <nav className="mt-8 space-y-2 px-4">
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => { setActiveTab(item.id); setIsOpen(false); }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                activeTab === item.id
+                  ? "bg-violet-600 text-white shadow-md shadow-violet-500/20"
+                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+              }`}
+            >
+              <item.icon size={18} />
+              {item.label}
+            </button>
+          ))}
         </nav>
 
-        {/* Bottom user + logout */}
-        <div className="mt-4 px-2 space-y-3">
-          <div className="flex items-center gap-3 bg-white/10 rounded-2xl px-3 py-2">
-            <Avatar src={student.avatar} alt={student.name} className="h-9 w-9" />
-            <div className="overflow-hidden">
-              <p className="text-sm font-semibold truncate">{student.name}</p>
-              <p className="text-[11px] text-violet-100/80 truncate">
-                {student.year}
-              </p>
-            </div>
+        {/* User Profile Snippet */}
+        <div className="absolute bottom-6 left-6 right-6 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-violet-200 flex items-center justify-center text-violet-700 font-bold">
+            S
           </div>
-
-          <button className="w-full flex items-center gap-2 px-4 py-2 rounded-2xl text-sm text-red-100 hover:bg-red-500/20 hover:text-white transition-colors">
-            <LogOut size={18} />
-            Logout
-          </button>
+          <div className="overflow-hidden">
+            <p className="text-sm font-bold truncate dark:text-white">Student User</p>
+            <p className="text-xs text-slate-500 truncate">student.edu</p>
+          </div>
         </div>
       </aside>
+    </>
+  );
+};
 
-      {/* Main Content Area */}
-      <main className="lg:pl-80 px-4 lg:px-8 py-4 lg:py-6">
-        {/* Top bar */}
-        <header className="flex items-center justify-between mb-6 gap-4">
+/* --- 2. Main Dashboard Component --- */
+export default function StudentDashboard() {
+  const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("home");
+  const [loading, setLoading] = useState(true);
+  const [isDark, setIsDark] = useState(false);
+  
+  // Data State
+  const [data, setData] = useState({ events: [], notices: [], pyqs: [] });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [yearFilter, setYearFilter] = useState("All");
+
+  // Load Data & Theme
+  useEffect(() => {
+    // Check Theme Preference
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+      setIsDark(true);
+    } else {
+      document.documentElement.classList.remove('dark');
+      setIsDark(false);
+    }
+
+    async function fetchData() {
+      try {
+        const [eventsRes, noticesRes, pyqsRes] = await Promise.all([
+          fetch("/api/events"),
+          fetch("/api/notices"),
+          fetch("/api/pyqs")
+        ]);
+        
+        const events = await eventsRes.json();
+        const notices = await noticesRes.json();
+        const pyqs = await pyqsRes.json();
+        
+        setData({ 
+          events: Array.isArray(events) ? events : [], 
+          notices: Array.isArray(notices) ? notices : [], 
+          pyqs: Array.isArray(pyqs) ? pyqs : [] 
+        });
+      } catch (err) {
+        console.error("Error loading data", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  // Theme Toggle Handler
+  const toggleTheme = () => {
+    if (isDark) {
+      document.documentElement.classList.remove("dark");
+      localStorage.theme = "light";
+      setIsDark(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.theme = "dark";
+      setIsDark(true);
+    }
+  };
+
+  // Filter PYQs
+  const filteredPYQs = data.pyqs.filter(pyq => {
+    const matchesSearch = pyq.subject_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesYear = yearFilter === "All" || pyq.academic_year === yearFilter;
+    return matchesSearch && matchesYear;
+  });
+
+  const handleLogout = () => router.push("/login");
+
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good Morning";
+    if (h < 18) return "Good Afternoon";
+    return "Good Evening";
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300">
+      
+      {/* Sidebar */}
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        isOpen={sidebarOpen} 
+        setIsOpen={setSidebarOpen} 
+      />
+
+      {/* Main Content */}
+      <main className="md:ml-64 min-h-screen p-6 md:p-10 transition-all">
+        
+        {/* Top Header */}
+        <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-3">
-            <button
-              className="lg:hidden p-2 rounded-xl bg-white dark:bg-slate-900 shadow-sm"
-              onClick={() => setIsMobileMenuOpen((v) => !v)}
+            <button 
+              onClick={() => setSidebarOpen(true)} 
+              className="md:hidden p-2 bg-white dark:bg-slate-800 rounded-lg shadow-sm"
             >
               <Menu size={20} />
             </button>
-            {/* Search */}
-            <div className="hidden md:flex relative">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search in CampusConnect..."
-                className="h-10 w-64 rounded-full border border-slate-200 bg-white px-9 text-sm outline-none focus:ring-2 focus:ring-violet-500 dark:bg-slate-900 dark:border-slate-700"
-              />
+            <div>
+              <h1 className="text-2xl font-bold">{getGreeting()}, Student! 👋</h1>
+              <p className="text-slate-500 text-sm hidden md:block">Let's be productive today.</p>
             </div>
           </div>
-
+          
           <div className="flex items-center gap-3">
-            <button
+            {/* Dark Mode Toggle */}
+            <button 
               onClick={toggleTheme}
-              className="p-2.5 rounded-full bg-white dark:bg-slate-900 shadow-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="p-2.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-yellow-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             >
-              {darkMode ? (
-                <Sun size={18} className="text-amber-400" />
-              ) : (
-                <Moon size={18} />
-              )}
+              {isDark ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-            <button className="relative p-2.5 rounded-full bg-white dark:bg-slate-900 shadow-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-              <Bell size={18} />
-              <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-900" />
-            </button>
-            <Avatar src={student.avatar} alt={student.name} className="hidden md:block" />
-          </div>
-        </header>
 
-        {/* Route content */}
-        <div className="max-w-6xl mx-auto space-y-8">
-          {isLoading ? (
-            /* LOADING STATE */
-            <div className="flex h-64 items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
-            </div>
-          ) : (
-            <>
-              {activeTab === "dashboard" && (
-                <DashboardHome
-                  setActiveTab={setActiveTab}
-                  events={events}
-                  notices={notices}
-                  pyqs={pyqs}
-                />
-              )}
-              {activeTab === "events" && <EventsPage events={events} />}
-              {activeTab === "pyqs" && <PyqPage pyqs={pyqs} />}
-              {activeTab === "notices" && <NoticesPage notices={notices} />}
-            </>
-          )}
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-sm font-medium hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
+            >
+              <LogOut size={16} />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+          </div>
         </div>
+
+        {/* --- 1. OVERVIEW (HOME) --- */}
+        {activeTab === "home" && (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            
+            {/* HERO SECTION */}
+            <div className="relative bg-gradient-to-r from-violet-600 to-indigo-600 rounded-3xl p-8 md:p-12 overflow-hidden text-white shadow-xl">
+              <div className="relative z-10 max-w-lg">
+                <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-semibold mb-4 backdrop-blur-md">
+                  🚀 Ready to learn?
+                </span>
+                <h2 className="text-3xl md:text-5xl font-extrabold mb-4 leading-tight">
+                  Ace your exams with <br/> CampusBuddy.
+                </h2>
+                <div className="flex gap-4">
+                  <button onClick={() => setActiveTab('pyqs')} className="px-6 py-3 bg-white text-violet-700 font-bold rounded-full shadow-lg hover:bg-slate-100 transition-transform hover:scale-105 active:scale-95">
+                    Find Resources
+                  </button>
+                </div>
+              </div>
+              {/* 3D Illustration Placeholder */}
+              <div className="absolute right-0 bottom-0 w-80 md:w-96 hidden md:block translate-y-10 translate-x-10 pointer-events-none">
+                <img 
+                  src="https://grainy-gradients.vercel.app/noise.svg" 
+                  className="absolute inset-0 opacity-20 mix-blend-overlay"
+                />
+                <img 
+                  src="https://cdni.iconscout.com/illustration/premium/thumb/3d-boy-study-with-laptop-2995966-2509587.png" 
+                  className="drop-shadow-2xl opacity-90"
+                  alt="Student Illustration"
+                />
+              </div>
+            </div>
+
+            {/* LIVE UPDATES GRID */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              
+              {/* Latest Notices (Takes up 2 columns) */}
+              <div className="lg:col-span-2 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-lg flex items-center gap-2">
+                    <FileText className="text-pink-500" size={20} /> Latest Updates
+                  </h3>
+                  <button onClick={() => setActiveTab('notices')} className="text-sm text-violet-600 font-medium hover:underline">View All</button>
+                </div>
+                
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-2 shadow-sm">
+                  {loading ? (
+                    <div className="p-8 text-center text-slate-400">Loading updates...</div>
+                  ) : data.notices.length === 0 ? (
+                    <div className="p-8 text-center text-slate-400">No new notices.</div>
+                  ) : (
+                    data.notices.slice(0, 3).map((notice, i) => (
+                      <div key={i} className="group flex gap-4 p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b last:border-0 border-slate-100 dark:border-slate-800">
+                        <div className="flex-shrink-0 w-12 h-12 bg-pink-50 dark:bg-pink-900/20 text-pink-600 rounded-xl flex items-center justify-center font-bold text-xs">
+                          {new Date(notice.created_at).getDate()} <br/>
+                          {new Date(notice.created_at).toLocaleString('default', { month: 'short' })}
+                        </div>
+                        <div className="flex-grow">
+                          <h4 className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-pink-600 transition-colors">
+                            {notice.title}
+                          </h4>
+                          <p className="text-sm text-slate-500 line-clamp-1">{notice.summary || "Tap to view details."}</p>
+                        </div>
+                        <a href={notice.file_url} target="_blank" className="self-center p-2 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-full transition-all">
+                          <ArrowRight size={18} />
+                        </a>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Upcoming Events (Takes up 1 column) */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                   <h3 className="font-bold text-lg flex items-center gap-2">
+                    <Calendar className="text-violet-600" size={20} /> Next Up
+                  </h3>
+                  <button onClick={() => setActiveTab('events')} className="text-sm text-violet-600 font-medium hover:underline">View All</button>
+                </div>
+
+                <div className="space-y-3">
+                  {loading ? (
+                    <div className="text-center text-slate-400 py-8">Loading...</div>
+                  ) : data.events.length === 0 ? (
+                    <div className="p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 text-center text-slate-400 text-sm">
+                      No upcoming events.
+                    </div>
+                  ) : (
+                    data.events.slice(0, 2).map((event, i) => (
+                      <div key={i} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-violet-500/10 to-transparent rounded-bl-full -mr-4 -mt-4"></div>
+                        <p className="text-xs font-bold text-violet-600 mb-1 uppercase tracking-wide">
+                          {new Date(event.date).toLocaleDateString(undefined, { weekday: 'long' })}
+                        </p>
+                        <h4 className="font-bold text-lg mb-3 leading-tight">{event.title}</h4>
+                        <div className="flex flex-col gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+                          <span className="flex items-center gap-2"><Clock size={14}/> {event.time}</span>
+                          <span className="flex items-center gap-2"><MapPin size={14}/> {event.location}</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* --- 2. PYQS SECTION --- */}
+        {activeTab === "pyqs" && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">📚 Study Resources</h2>
+              <p className="text-slate-500">Find question papers and notes.</p>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                <input 
+                  type="text"
+                  placeholder="Search subject..."
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl border-none focus:ring-2 focus:ring-violet-500 outline-none dark:text-white"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="relative min-w-[150px]">
+                <Filter className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                <select 
+                  className="w-full pl-10 pr-8 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl border-none focus:ring-2 focus:ring-violet-500 outline-none appearance-none cursor-pointer dark:text-white"
+                  value={yearFilter}
+                  onChange={(e) => setYearFilter(e.target.value)}
+                >
+                  <option value="All">All Years</option>
+                  <option value="1st Year">1st Year</option>
+                  <option value="2nd Year">2nd Year</option>
+                  <option value="3rd Year">3rd Year</option>
+                  <option value="4th Year">4th Year</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredPYQs.length > 0 ? (
+                filteredPYQs.map((pyq) => (
+                  <div key={pyq.id} className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 hover:shadow-lg transition-all group">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="h-12 w-12 bg-violet-100 dark:bg-violet-900/30 text-violet-600 rounded-xl flex items-center justify-center">
+                        <FileText size={24} />
+                      </div>
+                      <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-full">
+                        {pyq.year}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-lg mb-1 group-hover:text-violet-600 transition-colors">
+                      {pyq.subject_name}
+                    </h3>
+                    <p className="text-sm text-slate-500 mb-4">
+                      {pyq.course_code} • {pyq.branch}
+                    </p>
+                    <a 
+                      href={pyq.file_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-violet-600 hover:text-white transition-all"
+                    >
+                      <Download size={16} /> Download
+                    </a>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full py-12 text-center text-slate-400">
+                  <p>No resources found matching your search.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* --- 3. EVENTS TAB --- */}
+        {activeTab === "events" && (
+           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <h2 className="text-2xl font-bold">📅 All Events</h2>
+             <div className="grid gap-4">
+                {data.events.map(event => (
+                  <div key={event.id} className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                      <h3 className="font-bold text-lg">{event.title}</h3>
+                      <p className="text-slate-500">{event.location} • {event.time}</p>
+                    </div>
+                    <div className="text-center bg-violet-50 dark:bg-violet-900/20 p-3 rounded-xl text-violet-700 dark:text-violet-300 min-w-[70px]">
+                       <div className="text-xs font-bold uppercase">{new Date(event.date).toLocaleString('default', { month: 'short' })}</div>
+                       <div className="text-2xl font-bold">{new Date(event.date).getDate()}</div>
+                    </div>
+                  </div>
+                ))}
+             </div>
+           </div>
+        )}
+
+        {/* --- 4. NOTICES TAB --- */}
+        {activeTab === "notices" && (
+           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <h2 className="text-2xl font-bold">📢 Notice Board</h2>
+             <div className="grid gap-4">
+                {data.notices.map(notice => (
+                  <div key={notice.id} className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-l-4 hover:border-l-pink-500 transition-all">
+                    <div className="flex justify-between mb-2">
+                       <span className="text-xs font-bold text-pink-600 bg-pink-50 dark:bg-pink-900/20 px-2 py-1 rounded-md">OFFICIAL</span>
+                       <span className="text-xs text-slate-400">{new Date(notice.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <h3 className="font-bold text-lg mb-2">{notice.title}</h3>
+                    <a href={notice.file_url} target="_blank" className="text-sm text-violet-600 hover:underline flex items-center gap-1">
+                      View Attachment <ArrowRight size={14} />
+                    </a>
+                  </div>
+                ))}
+             </div>
+           </div>
+        )}
+
       </main>
 
-      {/* Mobile overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-      <Chatbot/>
-    </div>
-  );
-}
-
-/* ---------- Sub Pages ---------- */
-
-function DashboardHome({ setActiveTab, events, notices, pyqs }) {
-  const today = new Date().toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-
-  return (
-    <>
-      {/* Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg p-8 flex flex-col md:flex-row md:items-center md:justify-between">
-        <div className="relative z-10 max-w-xl space-y-3">
-          <p className="text-sm text-violet-100">{today}</p>
-          <h1 className="text-3xl md:text-4xl font-bold">
-            Welcome back, John!
-          </h1>
-          <p className="text-sm md:text-base text-violet-100 max-w-md">
-            Always stay updated in your student portal. Check events, notices,
-            and previous year questions in one place.
-          </p>
-          <div className="flex flex-wrap gap-3 pt-2">
-            <Button
-              className="text-black font-semibold  bg-teal-700 hover:bg-white/90"
-              onClick={() => setActiveTab("events")}
-            >
-              View upcoming events
-            </Button>
-            <Button variant="outline" onClick={() => setActiveTab("notices")}>
-              Open notice board
-            </Button>
-          </div>
-        </div>
-
-        {/* Right illustration side */}
-        <div className="mt-6 md:mt-0 md:ml-6 relative">
-          <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-purple-400/40 blur-3xl" />
-          <div className="absolute -top-6 right-4 h-28 w-28 rounded-full bg-violet-300/40 blur-2xl" />
-          <div className="relative h-40 w-40 md:h-48 md:w-48 rounded-3xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center overflow-hidden shadow-xl">
-            <img
-              src="/dashboard_3d.png"
-              alt="3D student"
-              className="h-full w-full object-cover "
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card
-          className="hover:scale-[1.02]"
-          onClick={() => setActiveTab("events")}
-        >
-          <CardHeader className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-violet-100 flex items-center justify-center">
-              <Calendar className="text-violet-600" size={20} />
-            </div>
-            <div>
-              <CardTitle>Upcoming Events</CardTitle>
-              <p className="text-xs text-slate-500 mt-1">
-                {events.length} events this month
-              </p>
-            </div>
-          </CardHeader>
-        </Card>
-
-        <Card
-          className="hover:scale-[1.02]"
-          onClick={() => setActiveTab("pyqs")}
-        >
-          <CardHeader className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-indigo-100 flex items-center justify-center">
-              <BookOpen className="text-indigo-600" size={20} />
-            </div>
-            <div>
-              <CardTitle>PYQs & Resources</CardTitle>
-              <p className="text-xs text-slate-500 mt-1">
-                {pyqs.length}+ papers available
-              </p>
-            </div>
-          </CardHeader>
-        </Card>
-
-        <Card
-          className="hover:scale-[1.02]"
-          onClick={() => setActiveTab("notices")}
-        >
-          <CardHeader className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-pink-100 flex items-center justify-center">
-              <FileText className="text-pink-600" size={20} />
-            </div>
-            <div>
-              <CardTitle>Notices</CardTitle>
-              <p className="text-xs text-slate-500 mt-1">
-                {notices.length} new announcements
-              </p>
-            </div>
-          </CardHeader>
-        </Card>
-      </div>
-
-      {/* Bottom section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex items-center justify-between">
-            <CardTitle>Upcoming events</CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => setActiveTab("events")}>
-              View all
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {events.length === 0 ? (
-              <p className="text-sm text-slate-500 text-center py-4">No events found.</p>
-            ) : (
-              <div className="space-y-3">
-                {events.map((event) => (
-                  <div
-                    key={event.id}
-                    className="flex items-center justify-between rounded-2xl border border-slate-100 dark:border-slate-800 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-900/70 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-violet-100 flex flex-col items-center justify-center text-[11px] font-semibold text-violet-700">
-                        <span>{event.date.split(" ")[0]}</span>
-                        <span>{event.date.split(" ")[1]}</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold">{event.title}</p>
-                        <p className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
-                          <Clock size={12} />
-                          {event.time} • {event.location}
-                        </p>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      Details
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex items-center justify-between">
-            <CardTitle>Daily notice</CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs"
-              onClick={() => setActiveTab("notices")}
-            >
-              See all
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {notices.length === 0 ? (
-              <p className="text-sm text-slate-500 text-center py-4">No notices yet.</p>
-            ) : (
-              <div className="space-y-4 text-sm">
-                {notices.map((notice) => (
-                  <div
-                    key={notice.id}
-                    className="border-b border-slate-100 dark:border-slate-800 pb-3 last:border-0 last:pb-0"
-                  >
-                    <p className="font-semibold text-slate-900 dark:text-slate-100">
-                      {notice.title}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {notice.summary || "Click to view file"}
-                    </p>
-                    <button className="mt-1 text-xs text-violet-600 hover:underline">
-                      More
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </>
-  );
-}
-
-function EventsPage({ events }) {
-  return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold mb-2">All events</h2>
-      {events.length === 0 ? (
-        <p className="text-slate-500">No events scheduled.</p>
-      ) : (
-        events.map((event) => (
-          <Card key={event.id}>
-            <CardHeader className="flex items-center justify-between">
-              <div>
-                <CardTitle>{event.title}</CardTitle>
-                <p className="text-xs text-slate-500 mt-1">
-                  {event.date} • {event.time} • {event.location}
-                </p>
-              </div>
-            </CardHeader>
-          </Card>
-        ))
-      )}
-    </div>
-  );
-}
-
-function PyqPage({ pyqs }) {
-  return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold mb-2">Previous year questions</h2>
-      {pyqs.length === 0 ? (
-        <p className="text-slate-500">No question papers uploaded yet.</p>
-      ) : (
-        pyqs.map((p) => (
-          <Card key={p.id}>
-            <CardHeader className="flex items-center justify-between">
-              <div>
-                {/* ✅ FIX 2: Corrected variable names to match DB */}
-                <CardTitle>{p.subject_name}</CardTitle>
-                <p className="text-xs text-slate-500 mt-1">
-                  {p.course_code} • {p.created_at}
-                </p>
-              </div>
-              {p.file_url && (
-                <a href={p.file_url} target="_blank">
-                  <Button size="sm" variant="outline">
-                    Download
-                  </Button>
-                </a>
-              )}
-            </CardHeader>
-          </Card>
-        ))
-      )}
-    </div>
-  );
-}
-
-function NoticesPage({ notices }) {
-  return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold mb-2">Notice board</h2>
-      {notices.length === 0 ? (
-        <p className="text-slate-500">No notices found.</p>
-      ) : (
-        notices.map((n) => (
-          <Card key={n.id}>
-            <CardHeader>
-              <CardTitle>{n.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-slate-600 dark:text-slate-300">
-                {n.summary}
-              </p>
-              {n.file_url && (
-                <a
-                  href={n.file_url}
-                  target="_blank"
-                  className="text-sm text-violet-600 hover:underline mt-2 inline-block"
-                >
-                  View Attachment
-                </a>
-              )}
-            </CardContent>
-          </Card>
-        ))
-      )}
+      {/* AI Chatbot */}
+      <Chatbot />
     </div>
   );
 }

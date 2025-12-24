@@ -37,7 +37,7 @@ export default function AdminPYQPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
-      alert("Please upload a PDF file.");
+      toast.error("Please upload a PDF file.");
       return;
     }
 
@@ -60,14 +60,14 @@ export default function AdminPYQPage() {
 
       const result = await res.json();
       
-      if (!res.ok) throw new Error(result.error || "Upload failed");
+      if (!res.ok) toast.error(result.error || "Upload failed");
 
-      alert("✅ PYQ Uploaded Successfully!");
+      toast.success("✅ PYQ Uploaded Successfully!");
       router.push("/dashboard"); 
 
     } catch (error) {
       console.error(error);
-      alert("❌ Error: " + error.message);
+      toast.error("❌ Error: " + error.message);
     } finally {
       setLoading(false);
     }
