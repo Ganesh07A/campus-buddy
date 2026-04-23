@@ -156,9 +156,9 @@ export default function LandingPage() {
       <section className="py-10 border-y border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50">
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
-            { label: "Active Students", val: "500+", icon: Users },
-            { label: "Resources", val: "1.2k", icon: FileText },
-            { label: "Events Hosted", val: "50+", icon: Calendar },
+            { label: "Active Students", val: "50+", icon: Users },
+            { label: "Resources", val: "100", icon: FileText },
+            { label: "Events Hosted", val: "10+", icon: Calendar },
             { label: "Uptime", val: "99.9%", icon: Zap },
           ].map((stat, i) => (
             <div key={i} className="space-y-1">
