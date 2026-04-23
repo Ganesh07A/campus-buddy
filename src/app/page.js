@@ -143,7 +143,7 @@ export default function LandingPage() {
                 Enter Dashboard <ArrowRight size={18} />
               </button>
             </Link>
-            <Link href="https://github.com/your-repo">
+            <Link href="https://github.com/Ganesh07A/campus-buddy">
               <button className="h-12 px-8 rounded-full border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 font-medium transition-colors">
                 View on GitHub
               </button>
